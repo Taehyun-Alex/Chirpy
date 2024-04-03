@@ -1,5 +1,6 @@
 <x-app-layout>
     <section class="max-w-2xl mx-auto p-4 md:p-6 lg:p-8">
+        <h4 class="bg-green-500 text-white p-4 my-8 rounded-lg">{{$greeting}}</h4>
         <form method="POST"
               action="{{ route("chirps.store") }}">
             @csrf
@@ -19,7 +20,7 @@
 
     </section>
 
-    <div class="mt-6 bg-white shadow-sm rounded-lg divide-y">
+    <div class="max-w-2xl mx-auto mt-6 bg-white shadow-sm rounded-lg divide-y">
         @foreach($chirps as $chirp)
             <section class="p-6 flex space-x-2">
                 <p class="text-4xl bg-black text-gray-300 rounded-full w-16">C</p>
@@ -32,7 +33,37 @@
                             <small class="ml-2 text-sm text-gray-600">
                                 {{ $chirp->created_at->format('j M Y, g:i a') }}
                             </small>
+                            @unless($chirp->created_at->eq($chirp->updated_at))
+                                <small class="text-sm text-gray-600">
+                                    &middot; {{__("edited")}}
+                                </small>
+                            @endunless
                         </h5>
+                        @if($chirp->user->is(auth()->user()))
+                            <x-dropdown>
+                                <x-slot name="trigger">
+                                    <button>
+                                        Action
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('chirps.edit',$chirp)">
+                                        {{ __("Edit") }}
+                                    </x-dropdown-link>
+
+                                    <form method="POST"
+                                          action="{{route('chirps.destroy', $chirp)}}">
+                                        @csrf
+                                        @method("delete")
+                                        <x-dropdown-link
+                                            :href="route('chirps.destroy',$chirp)"
+                                            onclick="event.preventDefault(); this.closest('form').submit();">
+                                            {{ __("Delete") }}
+                                        </x-dropdown-link>
+                                    </form>
+                                </x-slot>
+                            </x-dropdown>
+                        @endif
                     </div>
                     <p class="mt-4 text-lg text-gray-900">
                         {{ $chirp->message }}
